@@ -17,7 +17,6 @@ class Receta(BaseModel):
     preparacion: str
     tiempo_minutos: int
     imagen_url: str | None = None
-git add main.py requirements.txt .gitignore .env.example
 
 @app.get("/")
 def inicio():
