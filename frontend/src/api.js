@@ -1,0 +1,1 @@
+const BASE=import.meta.env.VITE_API_URL||'http://127.0.0.1:8000';export async function obtenerRecetas(){const r=await fetch(`${BASE}/recetas`);if(!r.ok)throw new Error('No se pudieron cargar las recetas');return r.json()}export async function obtenerReceta(id){const r=await fetch(`${BASE}/recetas/${id}`);if(!r.ok)throw new Error('Receta no encontrada');return r.json()}
