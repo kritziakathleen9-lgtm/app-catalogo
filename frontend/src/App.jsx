@@ -1,18 +1,367 @@
-import React,{useEffect,useState} from 'react';
-import {Routes,Route,Link,useParams,useNavigate,useLocation} from 'react-router-dom';
-import {Search,Menu,X,Clock,ArrowRight,Heart,Plus,Trash2,ChefHat} from 'lucide-react';
-import {imagenes} from './imagenes';import {obtenerRecetas,obtenerReceta} from './api';
-const demo=[{id:1,nombre:'Paella Valenciana',pais:'España',categoria:'Plato principal',tiempo_minutos:60,imagen_url:imagenes[6],ingredientes:'Arroz, pollo, judías verdes, azafrán, caldo',preparacion:'Prepara el sofrito, añade el arroz y cocina con el caldo.'},{id:2,nombre:'Ceviche Clásico',pais:'Perú',categoria:'Entrante',tiempo_minutos:25,imagen_url:imagenes[7],ingredientes:'Pescado, lima, cebolla roja, ají, cilantro',preparacion:'Corta el pescado, marina con lima y mezcla los ingredientes.'},{id:3,nombre:'Lomo Saltado',pais:'Perú',categoria:'Plato principal',tiempo_minutos:35,imagen_url:imagenes[8],ingredientes:'Ternera, cebolla, tomate, patatas, salsa de soja',preparacion:'Saltea la carne y las verduras a fuego alto.'},{id:4,nombre:'Tortilla de Patatas',pais:'España',categoria:'Plato principal',tiempo_minutos:40,imagen_url:imagenes[9],ingredientes:'Patatas, huevos, cebolla, aceite',preparacion:'Pocha las patatas y cuaja con el huevo.'}];
-function normalizar(r,i){if(Array.isArray(r)){return {id:r[0],nombre:r[1]||'Receta',pais:r[2]||'',categoria:r[3]||'',ingredientes:r[4]||'',preparacion:r[5]||'',tiempo_minutos:r[6]||0,imagen_url:r[7]||imagenes[i%imagenes.length]}}return {...r,imagen_url:r.imagen_url||imagenes[i%imagenes.length]}}
-function Header(){const[open,setOpen]=useState(false);return <header className="header"><div className="wrap nav"><Link to="/" className="logo">Entre <em>Sabores</em><small>RECETARIO DIGITAL</small></Link><button className="mobileToggle" onClick={()=>setOpen(!open)} aria-label="Abrir menú">{open?<X/>:<Menu/>}</button><nav className={open?'open':''} onClick={()=>setOpen(false)}><Link to="/">Inicio</Link><Link to="/recetas">Recetas</Link><Link to="/nosotros">Nosotros</Link><Link to="/contacto">Contacto</Link><Link to="/nueva" className="btn small">+ Añadir receta</Link></nav></div></header>}
-function Footer(){return <footer><div className="wrap footerGrid"><div><h2>Entre Sabores</h2><p>Dos culturas, infinitos sabores. Un recetario para compartir nuestra pasión por la cocina española y peruana.</p></div><div><h3>Explorar</h3><Link to="/recetas">Todas las recetas</Link><Link to="/nueva">Añadir receta</Link><Link to="/nosotros">Sobre nosotros</Link></div><div><h3>Ayuda y legal</h3><Link to="/contacto">Contacto</Link><Link to="/legal">Privacidad y cookies</Link></div></div><div className="wrap copyright">© 2026 Entre Sabores · Proyecto educativo</div></footer>}
-function Card({r}){return <Link to={'/recetas/'+r.id} className="recipeCard"><img src={r.imagen_url||imagenes[0]} alt={r.nombre} onError={e=>{e.currentTarget.src=imagenes[0]}}/><div className="cardBody"><span className="eyebrow">{r.pais||'Receta'} · {r.categoria||'Cocina casera'}</span><h3>{r.nombre}</h3><span className="time"><Clock size={15}/>{r.tiempo_minutos||'—'} min</span></div></Link>}
-function Home({recetas}){return <><section className="hero"><div className="wrap heroGrid"><div><span className="eyebrow">COCINA ESPAÑOLA & PERUANA</span><h1>Dos culturas,<br/><em>infinitos sabores</em></h1><p>Descubre recetas tradicionales, historias y sabores que unen España y Perú en una misma mesa.</p><Link className="btn" to="/recetas">Explorar recetas <ArrowRight size={17}/></Link></div><img src={imagenes[0]} alt="Plato de cocina tradicional"/></div></section><section className="wrap section"><div className="sectionHead"><div><span className="eyebrow">NUESTRAS RAÍCES</span><h2>Un viaje entre dos cocinas</h2></div></div><div className="cultureGrid"><Link to="/recetas?pais=España" className="culture" style={{backgroundImage:`linear-gradient(0deg,#1d1a16bd,transparent),url('${imagenes[1]}')`}}><h3>Sabores de España 🇪🇸</h3><span>Descubrir recetas →</span></Link><Link to="/recetas?pais=Perú" className="culture" style={{backgroundImage:`linear-gradient(0deg,#1d1a16bd,transparent),url('${imagenes[2]}')`}}><h3>Sabores del Perú 🇵🇪</h3><span>Descubrir recetas →</span></Link></div></section><section className="wrap section"><div className="sectionHead"><div><span className="eyebrow">PARA INSPIRARTE</span><h2>Recetas destacadas</h2></div><Link to="/recetas">Ver todas →</Link></div><div className="cards">{recetas.slice(0,4).map(r=><Card key={r.id} r={r}/>)}</div></section></>}
-function Catalogo({recetas,error}){const loc=useLocation(),q=new URLSearchParams(loc.search);const[buscar,setBuscar]=useState('');const[pais,setPais]=useState(q.get('pais')||'Todos');useEffect(()=>setPais(q.get('pais')||'Todos'),[loc.search]);const filtradas=recetas.filter(r=>(pais==='Todos'||r.pais?.toLowerCase()===pais.toLowerCase())&&r.nombre.toLowerCase().includes(buscar.toLowerCase()));return <main className="wrap section"><span className="eyebrow">EXPLORA Y DESCUBRE</span><h1>Catálogo de recetas</h1><p>Encuentra tu próxima receta favorita entre los sabores de España y Perú.</p>{error&&<p className="notice">No se pudo conectar con FastAPI. Se muestran recetas de ejemplo.</p>}<div className="filters"><label className="search"><Search size={19}/><input placeholder="Buscar recetas..." value={buscar} onChange={e=>setBuscar(e.target.value)}/></label><select value={pais} onChange={e=>setPais(e.target.value)}><option>Todos</option><option>España</option><option>Perú</option></select></div><div className="cards">{filtradas.map(r=><Card key={r.id} r={r}/>)}</div>{!filtradas.length&&<p>No encontramos recetas con esos filtros.</p>}</main>}
-function Detalle({recetas}){const{id}=useParams();const r=recetas.find(x=>String(x.id)===id);if(!r)return <main className="wrap section"><h1>Receta no encontrada</h1><Link to="/recetas">Volver al catálogo</Link></main>;return <main className="wrap section"><Link to="/recetas" className="back">← Volver al catálogo</Link><div className="detail"><img src={r.imagen_url||imagenes[0]} alt={r.nombre}/><div><span className="eyebrow">{r.pais} · {r.categoria}</span><h1>{r.nombre}</h1><p><Clock size={18}/> {r.tiempo_minutos} minutos</p><Link className="btn secondary" to={'/editar/'+r.id}>Editar receta</Link><Link className="btn outline" to={'/eliminar/'+r.id}>Eliminar receta</Link></div></div><div className="detailText"><section><h2>Ingredientes</h2><p className="pre">{r.ingredientes||'Sin ingredientes registrados'}</p></section><section><h2>Preparación paso a paso</h2><p className="pre">{r.preparacion||'Sin preparación registrada'}</p></section></div></main>}
-function Formulario({recetas}){const{id}=useParams();const r=recetas.find(x=>String(x.id)===id);const [form,setForm]=useState({nombre:r?.nombre||'',pais:r?.pais||'España',categoria:r?.categoria||'',tiempo_minutos:r?.tiempo_minutos||'',ingredientes:r?.ingredientes||'',preparacion:r?.preparacion||'',imagen_url:r?.imagen_url||''});useEffect(()=>setForm({nombre:r?.nombre||'',pais:r?.pais||'España',categoria:r?.categoria||'',tiempo_minutos:r?.tiempo_minutos||'',ingredientes:r?.ingredientes||'',preparacion:r?.preparacion||'',imagen_url:r?.imagen_url||''}),[id,r?.id]);return <main className="wrap section narrow"><span className="eyebrow">COMPARTE TU COCINA</span><h1>{id?'Editar receta':'Añadir nueva receta'}</h1><p>Completa los campos para preparar tu receta.</p><form className="form" onSubmit={e=>{e.preventDefault();alert('El formulario está preparado visualmente. Falta implementar POST/PUT en FastAPI para guardar los cambios.')}}>{[['nombre','Nombre de la receta'],['categoria','Categoría'],['tiempo_minutos','Tiempo en minutos'],['imagen_url','URL de imagen']].map(([k,t])=><label key={k}>{t}<input required={k==='nombre'} type={k==='tiempo_minutos'?'number':'text'} value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})}/></label>)}<label>País<select value={form.pais} onChange={e=>setForm({...form,pais:e.target.value})}><option>España</option><option>Perú</option></select></label>{[['ingredientes','Ingredientes'],['preparacion','Preparación']].map(([k,t])=><label key={k}>{t}<textarea rows="5" value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})}/></label>)}<p className="notice">Guardar requiere añadir las rutas POST y PUT al backend.</p><button className="btn" type="submit">{id?'Guardar cambios':'Añadir receta'}</button></form></main>}
-function Eliminar({recetas}){const{id}=useParams(),r=recetas.find(x=>String(x.id)===id);return <main className="wrap section narrow"><div className="panel"><Trash2 size={38} color="#a65236"/><h1>¿Estás seguro de que deseas eliminar esta receta?</h1><p>{r?.nombre||'Receta'} · Esta acción necesitará confirmación.</p><p className="notice">La ruta DELETE todavía no existe en FastAPI; no se eliminarán datos.</p><Link className="btn secondary" to={'/recetas/'+id}>Cancelar y volver</Link></div></main>}
-function Nosotros(){return <main className="wrap section narrow"><span className="eyebrow">NUESTRA HISTORIA</span><h1>Sobre Entre Sabores</h1><h2>Dos culturas, infinitos sabores</h2><p>Entre Sabores es un recetario digital dedicado a compartir la riqueza gastronómica de España y Perú. Queremos que descubrir, preparar y compartir recetas sea sencillo y agradable.</p><h2>Preguntas frecuentes</h2><details><summary>¿Cómo puedo explorar las recetas?</summary><p>Entra en el catálogo y filtra por país o nombre.</p></details><details><summary>¿Puedo añadir mi propia receta?</summary><p>El formulario está diseñado; la función de guardar estará disponible cuando completemos el backend.</p></details></main>}
-function Contacto(){return <main className="wrap section narrow"><span className="eyebrow">ESTAMOS AQUÍ PARA AYUDARTE</span><h1>Contacto y Ayuda</h1><p>¿Tienes alguna pregunta o sugerencia? Escríbenos.</p><form className="form" onSubmit={e=>{e.preventDefault();alert('Formulario de demostración: falta conectar un servicio de envío.')}}><label>Nombre<input required/></label><label>Correo electrónico<input required type="email"/></label><label>Mensaje<textarea required rows="6"/></label><button className="btn">Enviar mensaje</button></form><p className="notice">Formulario de contacto de demostración, todavía no envía mensajes.</p></main>}
-function Legal(){return <main className="wrap section narrow"><span className="eyebrow">INFORMACIÓN IMPORTANTE</span><h1>Centro Legal y Privacidad</h1>{['Aviso legal','Política de privacidad','Política de cookies','Términos y condiciones'].map(x=><section key={x}><h2>{x}</h2><p>Contenido provisional. Antes de publicar la web es necesario redactar y revisar esta sección según el funcionamiento real del servicio y la normativa aplicable.</p></section>)}</main>}
-export default function App(){const[recetas,setRecetas]=useState(demo),[error,setError]=useState(false);useEffect(()=>{obtenerRecetas().then(data=>{if(Array.isArray(data))setRecetas(data.map(normalizar))}).catch(()=>setError(true))},[]);return <><Header/><Routes><Route path="/" element={<Home recetas={recetas}/>}/><Route path="/recetas" element={<Catalogo recetas={recetas} error={error}/>}/><Route path="/recetas/:id" element={<Detalle recetas={recetas}/>}/><Route path="/nueva" element={<Formulario recetas={recetas}/>}/><Route path="/editar/:id" element={<Formulario recetas={recetas}/>}/><Route path="/eliminar/:id" element={<Eliminar recetas={recetas}/>}/><Route path="/nosotros" element={<Nosotros/>}/><Route path="/contacto" element={<Contacto/>}/><Route path="/legal" element={<Legal/>}/><Route path="*" element={<main className="wrap section"><h1>Página no encontrada</h1><Link to="/">Volver al inicio</Link></main>}/></Routes><Footer/></>}
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Link, useParams, useLocation } from 'react-router-dom';
+import { Search, Menu, X, Clock, ArrowRight, Trash2 } from 'lucide-react';
+import { imagenes } from './imagenes';
+import { obtenerRecetas } from './api';
+
+const demo = [
+    {
+        id: 1, nombre: 'Paella Valenciana',
+        pais: 'España',
+        categoria: 'Plato principal',
+        tiempo_minutos: 60,
+        imagen_url: imagenes.paella,
+        ingredientes: 'Arroz, pollo, judías verdes, azafrán, caldo',
+        preparacion: 'Prepara el sofrito, añade el arroz y cocina con el caldo.'
+    },
+    {
+        id: 2,
+        nombre: 'Ceviche Clásico',
+        pais: 'Perú',
+        categoria: 'Entrante',
+        tiempo_minutos: 25,
+        imagen_url: imagenes.ceviche,
+        ingredientes: 'Pescado, lima, cebolla roja, ají, cilantro',
+        preparacion: 'Corta el pescado, marina con lima y mezcla los ingredientes.'
+    },
+    {
+        id: 3,
+        nombre: 'Lomo Saltado',
+        pais: 'Perú',
+        categoria: 'Plato principal',
+        tiempo_minutos: 35,
+        imagen_url: imagenes.lomoSaltado,
+        ingredientes: 'Ternera, cebolla, tomate, patatas, salsa de soja',
+        preparacion: 'Saltea la carne y las verduras a fuego alto.'
+    },
+    {
+        id: 4,
+        nombre: 'Tortilla de Patatas',
+        pais: 'España',
+        categoria: 'Plato principal',
+        tiempo_minutos: 40,
+        imagen_url: imagenes.tortilla,
+        ingredientes: 'Patatas, huevos, cebolla, aceite',
+        preparacion: 'Pocha las patatas y cuaja con el huevo.'
+    },
+    {
+        id: 5,
+        nombre: 'Ají de Gallina',
+        pais: 'Perú',
+        categoria: 'Plato principal',
+        tiempo_minutos: 50,
+        imagen_url: imagenes.ajiGallina,
+        ingredientes: 'Pollo, ají amarillo, pan, leche, nueces, patatas',
+        preparacion: 'Deshilacha el pollo y cocínalo en una salsa cremosa de ají amarillo.'
+    },
+    {
+        id: 6,
+        nombre: 'Gazpacho Andaluz',
+        pais: 'España',
+        categoria: 'Entrante',
+        tiempo_minutos: 20,
+        imagen_url: imagenes.gazpacho,
+        ingredientes: 'Tomate, pepino, pimiento, ajo, aceite de oliva',
+        preparacion: 'Tritura las verduras y enfría antes de servir.'
+    },
+    {
+        id: 7,
+        nombre: 'Cachopo Asturiano',
+        pais: 'España',
+        categoria: 'Plato principal',
+        tiempo_minutos: 45,
+        imagen_url: imagenes.cachopo,
+        ingredientes: 'Filetes de ternera, jamón serrano, queso, huevo, pan rallado',
+        preparacion: 'Rellena los filetes, empánalos y fríelos hasta que estén dorados.'
+    },
+];
+
+function imagenDeReceta(r) {
+    const nombre = (r.nombre || '').toLowerCase();
+    if (nombre.includes('paella')) return imagenes.paella;
+    if (nombre.includes('ceviche')) return imagenes.ceviche;
+    if (nombre.includes('lomo')) return imagenes.lomoSaltado;
+    if (nombre.includes('tortilla')) return imagenes.tortilla;
+    if (nombre.includes('ají') || nombre.includes('aji')) return imagenes.ajiGallina;
+    if (nombre.includes('gazpacho')) return imagenes.gazpacho;
+    if (nombre.includes('cachopo')) return imagenes.cachopo;
+    return imagenes.hero;
+}
+
+function normalizar(r) {
+    if (Array.isArray(r)) {
+        const receta = { id: r[0], nombre: r[1] || 'Receta', pais: r[2] || '', categoria: r[3] || '', ingredientes: r[4] || '', preparacion: r[5] || '', tiempo_minutos: r[6] || 0, imagen_url: r[7] || '' };
+        return { ...receta, imagen_url: receta.imagen_url || imagenDeReceta(receta) };
+    }
+    return { ...r, imagen_url: r.imagen_url || imagenDeReceta(r) };
+}
+
+function Header() {
+    const [open, setOpen] = useState(false);
+    return <header className="header"><div className="wrap nav">
+        <Link to="/" className="logo">Entre <em>Sabores</em><small>RECETARIO DIGITAL</small></Link>
+        <button className="mobileToggle" onClick={() => setOpen(!open)} aria-label="Abrir menú">{open ? <X /> : <Menu />}</button>
+        <nav className={open ? 'open' : ''} onClick={() => setOpen(false)}>
+            <Link to="/">Inicio</Link><Link to="/recetas">Recetas</Link><Link to="/nosotros">Nosotros</Link><Link to="/contacto">Contacto</Link><Link to="/nueva" className="btn small">+ Añadir receta</Link>
+        </nav>
+    </div></header>;
+}
+
+function Footer() {
+    return <footer><div className="wrap footerGrid">
+        <div><h2>Entre Sabores</h2><p>Dos culturas, infinitos sabores. Un recetario para compartir nuestra pasión por la cocina española y peruana.</p></div>
+        <div><h3>Explorar</h3><Link to="/recetas">Todas las recetas</Link><Link to="/nueva">Añadir receta</Link><Link to="/nosotros">Sobre nosotros</Link></div>
+        <div><h3>Ayuda y legal</h3><Link to="/contacto">Contacto</Link><Link to="/legal">Privacidad y cookies</Link></div>
+    </div><div className="wrap copyright">© 2026 Entre Sabores · Proyecto educativo</div></footer>;
+}
+
+function Card({ r }) {
+    return <Link to={'/recetas/' + r.id} className="recipeCard">
+        <img src={r.imagen_url || imagenDeReceta(r)} alt={r.nombre} onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = imagenDeReceta(r); }} />
+        <div className="cardBody"><span className="eyebrow">{r.pais || 'Receta'} · {r.categoria || 'Cocina casera'}</span><h3>{r.nombre}</h3><span className="time"><Clock size={15} />{r.tiempo_minutos || '—'} min</span></div>
+    </Link>;
+}
+
+
+function Home({ recetas, error, cargando }) {
+    return (
+        <>
+            {/* HERO PANORÁMICO */}
+            <section className="hero">
+                <div className="wrap heroGrid">
+                    <div className="heroContent">
+                        <span className="eyebrow">
+                            COCINA ESPAÑOLA & PERUANA
+                        </span>
+
+                        <h1>
+                            Dos culturas,
+                            <br />
+                            <em>infinitos sabores</em>
+                        </h1>
+
+                        <p>
+                            Descubre recetas tradicionales, historias y sabores
+                            que unen España y Perú en una misma mesa.
+                        </p>
+
+                        <Link className="btn" to="/recetas">
+                            Explorar recetas
+                            <ArrowRight size={17} />
+                        </Link>
+                    </div>
+
+                    <div className="heroImage">
+                        <img
+                            src={imagenes.hero}
+                            alt="Buffet de cocina española y peruana"
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* NUESTRAS RAÍCES */}
+            <section className="wrap section">
+                <div className="sectionHead">
+                    <div>
+                        <span className="eyebrow">NUESTRAS RAÍCES</span>
+                        <h2>Un viaje entre dos cocinas</h2>
+                    </div>
+                </div>
+
+                <div className="cultureGrid">
+                    <Link
+                        to="/recetas?pais=España"
+                        className="culture"
+                        style={{
+                            backgroundImage: `linear-gradient(0deg, #1d1a16bd, transparent), url('${imagenes.espana}')`,
+                        }}
+                    >
+                        <h3>Sabores de España 🇪🇸</h3>
+                        <span>Descubrir recetas →</span>
+                    </Link>
+
+                    <Link
+                        to="/recetas?pais=Perú"
+                        className="culture"
+                        style={{
+                            backgroundImage: `linear-gradient(0deg, #1d1a16bd, transparent), url('${imagenes.peru}')`,
+                        }}
+                    >
+                        <h3>Sabores del Perú 🇵🇪</h3>
+                        <span>Descubrir recetas →</span>
+                    </Link>
+                </div>
+            </section>
+
+            {/* RECETAS DESTACADAS */}
+            <section className="wrap section">
+                <div className="sectionHead">
+                    <div>
+                        <span className="eyebrow">PARA INSPIRARTE</span>
+                        <h2>Recetas destacadas</h2>
+                    </div>
+
+                    <Link to="/recetas">Ver todas →</Link>
+                </div>
+
+                {cargando && (
+                    <p className="notice">
+                        Cargando recetas desde la API...
+                    </p>
+                )}
+
+                {error && (
+                    <p className="notice">
+                        No se pudo conectar con FastAPI.
+                        Se muestran recetas de ejemplo.
+                    </p>
+                )}
+
+                <div className="cards">
+                    {recetas.slice(0, 4).map((r) => (
+                        <Card key={r.id} r={r} />
+                    ))}
+                </div>
+            </section>
+        </>
+    );
+}
+
+
+function Catalogo({ recetas, error, cargando }) {
+    const loc = useLocation();
+    const q = new URLSearchParams(loc.search);
+    const [buscar, setBuscar] = useState('');
+    const [pais, setPais] = useState(q.get('pais') || 'Todos');
+    useEffect(() => setPais(q.get('pais') || 'Todos'), [loc.search]);
+    const filtradas = recetas.filter(r => (pais === 'Todos' || r.pais?.toLowerCase() === pais.toLowerCase()) && (r.nombre || '').toLowerCase().includes(buscar.toLowerCase()));
+    return <main className="wrap section"><span className="eyebrow">EXPLORA Y DESCUBRE</span><h1>Catálogo de recetas</h1><p>Encuentra tu próxima receta favorita entre los sabores de España y Perú.</p>
+        {cargando && <p className="notice">Cargando recetas desde la API...</p>}
+        {error && <p className="notice">No se pudo conectar con FastAPI. Se muestran recetas de ejemplo.</p>}
+        <div className="filters"><label className="search"><Search size={19} /><input placeholder="Buscar recetas..." value={buscar} onChange={e => setBuscar(e.target.value)} /></label><select value={pais} onChange={e => setPais(e.target.value)}><option>Todos</option><option>España</option><option>Perú</option></select></div>
+        <div className="cards">{filtradas.map(r => <Card key={r.id} r={r} />)}</div>
+        {!cargando && !filtradas.length && <p>No encontramos recetas con esos filtros.</p>}
+    </main>;
+}
+
+function Detalle({ recetas }) {
+    const { id } = useParams();
+    const r = recetas.find(x => String(x.id) === id);
+    if (!r) return <main className="wrap section"><h1>Receta no encontrada</h1><Link to="/recetas">Volver al catálogo</Link></main>;
+    return <main className="wrap section"><Link to="/recetas" className="back">← Volver al catálogo</Link><div className="detail">
+        <img src={r.imagen_url || imagenDeReceta(r)} alt={r.nombre} onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = imagenDeReceta(r); }} />
+        <div><span className="eyebrow">{r.pais} · {r.categoria}</span><h1>{r.nombre}</h1><p><Clock size={18} /> {r.tiempo_minutos} minutos</p><Link className="btn secondary" to={'/editar/' + r.id}>Editar receta</Link><Link className="btn outline" to={'/eliminar/' + r.id}>Eliminar receta</Link></div>
+    </div><div className="detailText"><section><h2>Ingredientes</h2><p className="pre">{r.ingredientes || 'Sin ingredientes registrados'}</p></section><section><h2>Preparación paso a paso</h2><p className="pre">{r.preparacion || 'Sin preparación registrada'}</p></section></div></main>;
+}
+
+function Formulario({ recetas }) {
+    const { id } = useParams();
+    const r = recetas.find(x => String(x.id) === id);
+    const [form, setForm] = useState({ nombre: r?.nombre || '', pais: r?.pais || 'España', categoria: r?.categoria || '', tiempo_minutos: r?.tiempo_minutos || '', ingredientes: r?.ingredientes || '', preparacion: r?.preparacion || '', imagen_url: r?.imagen_url || '' });
+    useEffect(() => setForm({ nombre: r?.nombre || '', pais: r?.pais || 'España', categoria: r?.categoria || '', tiempo_minutos: r?.tiempo_minutos || '', ingredientes: r?.ingredientes || '', preparacion: r?.preparacion || '', imagen_url: r?.imagen_url || '' }), [id, r?.id]);
+    return <main className="wrap section narrow"><span className="eyebrow">COMPARTE TU COCINA</span><h1>{id ? 'Editar receta' : 'Añadir nueva receta'}</h1><p>Completa los campos para preparar tu receta.</p>
+        <form className="form" onSubmit={e => { e.preventDefault(); alert('El formulario está preparado visualmente. Falta implementar POST/PUT en FastAPI para guardar los cambios.'); }}>
+            {[['nombre', 'Nombre de la receta'], ['categoria', 'Categoría'], ['tiempo_minutos', 'Tiempo en minutos'], ['imagen_url', 'URL de imagen']].map(([k, t]) => <label key={k}>{t}<input required={k === 'nombre'} type={k === 'tiempo_minutos' ? 'number' : 'text'} value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} /></label>)}
+            <label>País<select value={form.pais} onChange={e => setForm({ ...form, pais: e.target.value })}><option>España</option><option>Perú</option></select></label>
+            {[['ingredientes', 'Ingredientes'], ['preparacion', 'Preparación']].map(([k, t]) => <label key={k}>{t}<textarea rows="5" value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} /></label>)}
+            <p className="notice">Guardar requiere añadir las rutas POST y PUT al backend.</p><button className="btn" type="submit">{id ? 'Guardar cambios' : 'Añadir receta'}</button>
+        </form>
+    </main>;
+}
+
+function Eliminar({ recetas }) {
+    const { id } = useParams();
+    const r = recetas.find(x => String(x.id) === id);
+    return <main className="wrap section narrow"><div className="panel"><Trash2 size={38} color="#a65236" /><h1>¿Estás seguro de que deseas eliminar esta receta?</h1><p>{r?.nombre || 'Receta'} · Esta acción necesitará confirmación.</p><p className="notice">La ruta DELETE todavía no existe en FastAPI; no se eliminarán datos.</p><Link className="btn secondary" to={'/recetas/' + id}>Cancelar y volver</Link></div></main>;
+}
+
+function Nosotros() {
+    return <main className="wrap section narrow"><span className="eyebrow">NUESTRA HISTORIA</span><h1>Sobre Entre Sabores</h1><h2>Dos culturas, infinitos sabores</h2><p>Entre Sabores es un recetario digital dedicado a compartir la riqueza gastronómica de España y Perú. Queremos que descubrir, preparar y compartir recetas sea sencillo y agradable.</p><h2>Preguntas frecuentes</h2><details><summary>¿Cómo puedo explorar las recetas?</summary><p>Entra en el catálogo y filtra por país o nombre.</p></details><details><summary>¿Puedo añadir mi propia receta?</summary><p>El formulario está diseñado; la función de guardar estará disponible cuando completemos el backend.</p></details></main>;
+}
+
+function Contacto() {
+    return <main className="wrap section narrow"><span className="eyebrow">ESTAMOS AQUÍ PARA AYUDARTE</span><h1>Contacto y Ayuda</h1><p>¿Tienes alguna pregunta o sugerencia? Escríbenos.</p><form className="form" onSubmit={e => { e.preventDefault(); alert('Formulario de demostración: falta conectar un servicio de envío.'); }}><label>Nombre<input required /></label><label>Correo electrónico<input required type="email" /></label><label>Mensaje<textarea required rows="6" /></label><button className="btn">Enviar mensaje</button></form><p className="notice">Formulario de contacto de demostración, todavía no envía mensajes.</p></main>;
+}
+
+function Legal() {
+    return <main className="wrap section narrow"><span className="eyebrow">INFORMACIÓN IMPORTANTE</span><h1>Centro Legal y Privacidad</h1>{['Aviso legal', 'Política de privacidad', 'Política de cookies', 'Términos y condiciones'].map(x => <section key={x}><h2>{x}</h2><p>Contenido provisional. Antes de publicar la web es necesario redactar y revisar esta sección según el funcionamiento real del servicio y la normativa aplicable.</p></section>)}</main>;
+}
+
+export default function App() {
+    const [recetas, setRecetas] = useState(demo);
+    const [error, setError] = useState(false);
+    const [cargando, setCargando] = useState(true);
+    useEffect(() => {
+        obtenerRecetas()
+            .then(data => { if (!Array.isArray(data)) throw new Error('Respuesta inesperada de la API'); setRecetas(data.map(normalizar)); })
+            .catch(() => setError(true))
+            .finally(() => setCargando(false));
+    }, []);
+
+    return (
+        <>
+            <Header />
+
+            <Routes>
+                <Route
+                    path="/"
+                    element={
+                        <Home
+                            recetas={recetas}
+                            error={error}
+                            cargando={cargando}
+                        />
+                    }
+                />
+
+                <Route
+                    path="/recetas"
+                    element={
+                        <Catalogo
+                            recetas={recetas}
+                            error={error}
+                            cargando={cargando}
+                        />
+                    }
+                />
+
+                <Route
+                    path="/recetas/:id"
+                    element={<Detalle recetas={recetas} />}
+                />
+
+                <Route
+                    path="/nueva"
+                    element={<Formulario recetas={recetas} />}
+                />
+
+                <Route
+                    path="/editar/:id"
+                    element={<Formulario recetas={recetas} />}
+                />
+
+                <Route
+                    path="/eliminar/:id"
+                    element={<Eliminar recetas={recetas} />}
+                />
+
+                <Route path="/nosotros" element={<Nosotros />} />
+                <Route path="/contacto" element={<Contacto />} />
+                <Route path="/legal" element={<Legal />} />
+
+                <Route
+                    path="*"
+                    element={
+                        <main className="wrap section">
+                            <h1>Página no encontrada</h1>
+                            <Link to="/">Volver al inicio</Link>
+                        </main>
+                    }
+                />
+            </Routes>
+
+            <Footer />
+        </>
+    );
+}
