@@ -56,3 +56,59 @@ def buscar_receta(id: int):
         )
 
     return receta
+
+@app.put("/recetas/{id}")
+def editar_receta(id: int, receta: Receta):
+    with conectar_db() as conexion:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE recetas
+                SET nombre = %s,
+                    pais = %s,
+                    categoria = %s,
+                    ingredientes = %s,
+                    preparacion = %s,
+                    tiempo_minutos = %s,
+                    imagen_url = %s
+                WHERE id = %s
+                RETURNING id
+                """,
+                (
+                    receta.nombre,
+                    receta.pais,
+                    receta.categoria,
+                    receta.ingredientes,
+                    receta.preparacion,
+                    receta.tiempo_minutos,
+                    receta.imagen_url,
+                    id
+                )
+            )
+            resultado = cursor.fetchone()
+
+    if resultado is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Receta no encontrada"
+        )
+
+    return {"mensaje": "Receta actualizada correctamente"}
+
+@app.delete("/recetas/{id}")
+def eliminar_receta(id: int):
+    with conectar_db() as conexion:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM recetas WHERE id = %s RETURNING id",
+                (id,)
+            )
+            resultado = cursor.fetchone()
+
+    if resultado is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Receta no encontrada"
+        )
+
+    return {"mensaje": "Receta eliminada correctamente"}
