@@ -248,3 +248,22 @@ footer a {
     grid-template-columns: 1fr;
   }
 }
+
+.contact-success {
+  margin-top: 24px;
+  padding: 18px 22px;
+  background-color: #e9efe5;
+  border-left: 4px solid #49634a;
+  border-radius: 6px;
+  color: #34513a;
+}
+
+.contact-success strong {
+  display: block;
+  font-size: 17px;
+}
+
+.contact-success p {
+  margin: 6px 0 0;
+  color: #34513a;
+}

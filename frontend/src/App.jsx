@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, Link, useParams, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Search, Menu, X, Clock, ArrowRight, Trash2 } from 'lucide-react';
 import { imagenes } from './imagenes';
-import { obtenerRecetas } from './api';
+import {
+  obtenerRecetas,
+  crearReceta,
+  editarReceta,
+  eliminarReceta,
+  enviarContacto
+} from './api';
 
 const demo = [
     {
@@ -114,7 +120,6 @@ function Footer() {
         <div><h3>Ayuda y legal</h3><Link to="/contacto">Contacto</Link><Link to="/legal">Privacidad y cookies</Link></div>
     </div><div className="wrap copyright">© 2026 Entre Sabores · Proyecto educativo</div></footer>;
 }
-
 function Card({ r }) {
     return <Link to={'/recetas/' + r.id} className="recipeCard">
         <img src={r.imagen_url || imagenDeReceta(r)} alt={r.nombre} onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = imagenDeReceta(r); }} />
@@ -159,8 +164,7 @@ function Home({ recetas, error, cargando }) {
                     </div>
                 </div>
             </section>
-
-            {/* NUESTRAS RAÍCES */}
+{/* NUESTRAS RAÍCES */}
             <section className="wrap section">
                 <div className="sectionHead">
                     <div>
@@ -227,8 +231,6 @@ function Home({ recetas, error, cargando }) {
         </>
     );
 }
-
-
 function Catalogo({ recetas, error, cargando }) {
     const loc = useLocation();
     const q = new URLSearchParams(loc.search);
@@ -255,46 +257,235 @@ function Detalle({ recetas }) {
     </div><div className="detailText"><section><h2>Ingredientes</h2><p className="pre">{r.ingredientes || 'Sin ingredientes registrados'}</p></section><section><h2>Preparación paso a paso</h2><p className="pre">{r.preparacion || 'Sin preparación registrada'}</p></section></div></main>;
 }
 
-function Formulario({ recetas }) {
+function Formulario({ recetas, actualizarRecetas, cargando }) {
     const { id } = useParams();
+    const navigate = useNavigate();
     const r = recetas.find(x => String(x.id) === id);
-    const [form, setForm] = useState({ nombre: r?.nombre || '', pais: r?.pais || 'España', categoria: r?.categoria || '', tiempo_minutos: r?.tiempo_minutos || '', ingredientes: r?.ingredientes || '', preparacion: r?.preparacion || '', imagen_url: r?.imagen_url || '' });
-    useEffect(() => setForm({ nombre: r?.nombre || '', pais: r?.pais || 'España', categoria: r?.categoria || '', tiempo_minutos: r?.tiempo_minutos || '', ingredientes: r?.ingredientes || '', preparacion: r?.preparacion || '', imagen_url: r?.imagen_url || '' }), [id, r?.id]);
+    const [form, setForm] = useState({ nombre: '', pais: 'España', categoria: '', tiempo_minutos: '', ingredientes: '', preparacion: '', imagen_url: '' });
+    const [guardando, setGuardando] = useState(false);
+    const [errorFormulario, setErrorFormulario] = useState('');
+
+    useEffect(() => {
+        setForm({
+            nombre: r?.nombre || '',
+            pais: r?.pais || 'España',
+            categoria: r?.categoria || '',
+            tiempo_minutos: r?.tiempo_minutos ?? '',
+            ingredientes: r?.ingredientes || '',
+            preparacion: r?.preparacion || '',
+            imagen_url: r && r.imagen_url === imagenDeReceta(r) ? '' : (r?.imagen_url || '')
+        });
+    }, [id, r?.id, r?.nombre, r?.pais, r?.categoria, r?.tiempo_minutos, r?.ingredientes, r?.preparacion, r?.imagen_url]);
+
+    async function guardar(e) {
+        e.preventDefault();
+        setErrorFormulario('');
+        const minutos = Number(form.tiempo_minutos);
+        if (!Number.isInteger(minutos) || minutos <= 0) {
+            setErrorFormulario('Introduce un tiempo válido mayor que cero.');
+            return;
+        }
+        if (id && !r) {
+            setErrorFormulario('No se encontró la receta que quieres editar.');
+            return;
+        }
+        setGuardando(true);
+        try {
+            const datos = {
+                nombre: form.nombre.trim(),
+                pais: form.pais,
+                categoria: form.categoria.trim(),
+                ingredientes: form.ingredientes.trim(),
+                preparacion: form.preparacion.trim(),
+                tiempo_minutos: minutos,
+                imagen_url: form.imagen_url.trim() || null
+            };
+            await (id ? editarReceta(id, datos) : crearReceta(datos));
+            await actualizarRecetas();
+            navigate('/recetas');
+        } catch (error) {
+            setErrorFormulario(error.message || 'No se pudo guardar la receta.');
+        } finally {
+            setGuardando(false);
+        }
+    }
+
+    if (id && cargando) return <main className="wrap section narrow"><p className="notice">Cargando receta...</p></main>;
     return <main className="wrap section narrow"><span className="eyebrow">COMPARTE TU COCINA</span><h1>{id ? 'Editar receta' : 'Añadir nueva receta'}</h1><p>Completa los campos para preparar tu receta.</p>
-        <form className="form" onSubmit={e => { e.preventDefault(); alert('El formulario está preparado visualmente. Falta implementar POST/PUT en FastAPI para guardar los cambios.'); }}>
-            {[['nombre', 'Nombre de la receta'], ['categoria', 'Categoría'], ['tiempo_minutos', 'Tiempo en minutos'], ['imagen_url', 'URL de imagen']].map(([k, t]) => <label key={k}>{t}<input required={k === 'nombre'} type={k === 'tiempo_minutos' ? 'number' : 'text'} value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} /></label>)}
+        <form className="form" onSubmit={guardar}>
+            {[['nombre', 'Nombre de la receta'], ['categoria', 'Categoría'], ['tiempo_minutos', 'Tiempo en minutos'], ['imagen_url', 'URL de imagen']].map(([k, t]) => <label key={k}>{t}<input required={k !== 'imagen_url'} min={k === 'tiempo_minutos' ? '1' : undefined} type={k === 'tiempo_minutos' ? 'number' : 'text'} value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} /></label>)}
             <label>País<select value={form.pais} onChange={e => setForm({ ...form, pais: e.target.value })}><option>España</option><option>Perú</option></select></label>
-            {[['ingredientes', 'Ingredientes'], ['preparacion', 'Preparación']].map(([k, t]) => <label key={k}>{t}<textarea rows="5" value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} /></label>)}
-            <p className="notice">Guardar requiere añadir las rutas POST y PUT al backend.</p><button className="btn" type="submit">{id ? 'Guardar cambios' : 'Añadir receta'}</button>
+            {[['ingredientes', 'Ingredientes'], ['preparacion', 'Preparación']].map(([k, t]) => <label key={k}>{t}<textarea required rows="5" value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} /></label>)}
+            {errorFormulario && <p className="notice" role="alert">{errorFormulario}</p>}
+            <button className="btn" type="submit" disabled={guardando}>{guardando ? 'Guardando...' : id ? 'Guardar cambios' : 'Añadir receta'}</button>
         </form>
     </main>;
 }
-
-function Eliminar({ recetas }) {
+function Eliminar({ recetas, actualizarRecetas, cargando }) {
     const { id } = useParams();
+    const navigate = useNavigate();
     const r = recetas.find(x => String(x.id) === id);
-    return <main className="wrap section narrow"><div className="panel"><Trash2 size={38} color="#a65236" /><h1>¿Estás seguro de que deseas eliminar esta receta?</h1><p>{r?.nombre || 'Receta'} · Esta acción necesitará confirmación.</p><p className="notice">La ruta DELETE todavía no existe en FastAPI; no se eliminarán datos.</p><Link className="btn secondary" to={'/recetas/' + id}>Cancelar y volver</Link></div></main>;
+    const [eliminando, setEliminando] = useState(false);
+    const [errorEliminar, setErrorEliminar] = useState('');
+
+    async function confirmar() {
+        if (!r) return;
+        setEliminando(true);
+        setErrorEliminar('');
+        try {
+            await eliminarReceta(id);
+            await actualizarRecetas();
+            navigate('/recetas');
+        } catch (error) {
+            setErrorEliminar(error.message || 'No se pudo eliminar la receta.');
+        } finally {
+            setEliminando(false);
+        }
+    }
+
+    if (cargando) return <main className="wrap section narrow"><p className="notice">Cargando receta...</p></main>;
+    return <main className="wrap section narrow"><div className="panel"><Trash2 size={38} color="#a65236" /><h1>¿Estás seguro de que deseas eliminar esta receta?</h1><p>{r?.nombre || 'Receta no encontrada'} · Esta acción no se puede deshacer.</p>
+        {errorEliminar && <p className="notice" role="alert">{errorEliminar}</p>}
+        <Link className="btn secondary" to={r ? '/recetas/' + id : '/recetas'}>Cancelar y volver</Link>{' '}
+        <button className="btn" type="button" onClick={confirmar} disabled={eliminando || !r}>{eliminando ? 'Eliminando...' : 'Sí, eliminar receta'}</button>
+    </div></main>;
 }
 
 function Nosotros() {
-    return <main className="wrap section narrow"><span className="eyebrow">NUESTRA HISTORIA</span><h1>Sobre Entre Sabores</h1><h2>Dos culturas, infinitos sabores</h2><p>Entre Sabores es un recetario digital dedicado a compartir la riqueza gastronómica de España y Perú. Queremos que descubrir, preparar y compartir recetas sea sencillo y agradable.</p><h2>Preguntas frecuentes</h2><details><summary>¿Cómo puedo explorar las recetas?</summary><p>Entra en el catálogo y filtra por país o nombre.</p></details><details><summary>¿Puedo añadir mi propia receta?</summary><p>El formulario está diseñado; la función de guardar estará disponible cuando completemos el backend.</p></details></main>;
+    return <main className="wrap section narrow">
+        <span className="eyebrow">NUESTRA HISTORIA</span>
+        <h1>Sobre Entre Sabores</h1>
+        <h2>Dos culturas, infinitos sabores</h2>
+        <p>Entre Sabores es un recetario digital dedicado a compartir la riqueza gastronómica de España y Perú. Queremos que descubrir, preparar y compartir recetas sea sencillo y agradable.</p>
+        <h2>Preguntas frecuentes</h2>
+        <details><summary>¿Cómo puedo explorar las recetas?</summary><p>Entra en el catálogo y filtra por país o nombre.</p></details>
+        <details><summary>¿Puedo añadir mi propia receta?</summary><p>Sí. Puedes añadir recetas desde el formulario y guardarlas en nuestro recetario.</p></details></main>;
 }
 
 function Contacto() {
-    return <main className="wrap section narrow"><span className="eyebrow">ESTAMOS AQUÍ PARA AYUDARTE</span><h1>Contacto y Ayuda</h1><p>¿Tienes alguna pregunta o sugerencia? Escríbenos.</p><form className="form" onSubmit={e => { e.preventDefault(); alert('Formulario de demostración: falta conectar un servicio de envío.'); }}><label>Nombre<input required /></label><label>Correo electrónico<input required type="email" /></label><label>Mensaje<textarea required rows="6" /></label><button className="btn">Enviar mensaje</button></form><p className="notice">Formulario de contacto de demostración, todavía no envía mensajes.</p></main>;
+  const [form, setForm] = useState({
+    nombre: '',
+    correo: '',
+    mensaje: ''
+  });
+
+  const [enviado, setEnviado] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState('');
+
+  async function enviar(e) {
+    e.preventDefault();
+    setEnviando(true);
+    setError('');
+    setEnviado(false);
+
+    try {
+      await enviarContacto(form);
+
+      setEnviado(true);
+      setForm({
+        nombre: '',
+        correo: '',
+        mensaje: ''
+      });
+    } catch (error) {
+      setError('No se pudo enviar el mensaje. Inténtalo de nuevo.');
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <main className="wrap section narrow">
+      <span className="eyebrow">
+        ESTAMOS AQUÍ PARA AYUDARTE
+      </span>
+
+      <h1>Contacto y Ayuda</h1>
+
+      <p>
+        ¿Tienes alguna pregunta o sugerencia? Escríbenos.
+      </p>
+
+      <form className="form" onSubmit={enviar}>
+        <label>
+          Nombre
+          <input
+            required
+            minLength={2}
+            maxLength={100}
+            value={form.nombre}
+            onChange={e =>
+              setForm({ ...form, nombre: e.target.value })
+            }
+          />
+        </label>
+
+        <label>
+          Correo electrónico
+          <input
+            required
+            type="email"
+            maxLength={254}
+            value={form.correo}
+            onChange={e =>
+              setForm({ ...form, correo: e.target.value })
+            }
+          />
+        </label>
+
+        <label>
+          Mensaje
+          <textarea
+            required
+            rows="6"
+            maxLength={2000}
+            value={form.mensaje}
+            onChange={e =>
+              setForm({ ...form, mensaje: e.target.value })
+            }
+          />
+        </label>
+
+        <button
+          className="btn"
+          type="submit"
+          disabled={enviando}
+        >
+          {enviando ? 'Enviando...' : 'Enviar mensaje'}
+        </button>
+      </form>
+
+      {enviado && (
+        <div className="contact-success" role="status">
+          <strong>¡Mensaje enviado correctamente!</strong>
+          <p>Gracias por contactar con Entre Sabores.</p>
+        </div>
+      )}
+
+      {error && (
+        <p className="notice" role="alert">{error}</p>
+      )}
+    </main>
+  );
 }
+
 
 function Legal() {
     return <main className="wrap section narrow"><span className="eyebrow">INFORMACIÓN IMPORTANTE</span><h1>Centro Legal y Privacidad</h1>{['Aviso legal', 'Política de privacidad', 'Política de cookies', 'Términos y condiciones'].map(x => <section key={x}><h2>{x}</h2><p>Contenido provisional. Antes de publicar la web es necesario redactar y revisar esta sección según el funcionamiento real del servicio y la normativa aplicable.</p></section>)}</main>;
-}
-
-export default function App() {
+}export default function App() {
     const [recetas, setRecetas] = useState(demo);
     const [error, setError] = useState(false);
     const [cargando, setCargando] = useState(true);
+    async function actualizarRecetas() {
+        const data = await obtenerRecetas();
+        if (!Array.isArray(data)) throw new Error('Respuesta inesperada de la API');
+        setRecetas(data.map(normalizar));
+        setError(false);
+    }
+
     useEffect(() => {
-        obtenerRecetas()
-            .then(data => { if (!Array.isArray(data)) throw new Error('Respuesta inesperada de la API'); setRecetas(data.map(normalizar)); })
+        actualizarRecetas()
             .catch(() => setError(true))
             .finally(() => setCargando(false));
     }, []);
@@ -333,17 +524,17 @@ export default function App() {
 
                 <Route
                     path="/nueva"
-                    element={<Formulario recetas={recetas} />}
+                    element={<Formulario recetas={recetas} actualizarRecetas={actualizarRecetas} cargando={cargando} />}
                 />
 
                 <Route
                     path="/editar/:id"
-                    element={<Formulario recetas={recetas} />}
+                    element={<Formulario recetas={recetas} actualizarRecetas={actualizarRecetas} cargando={cargando} />}
                 />
 
                 <Route
                     path="/eliminar/:id"
-                    element={<Eliminar recetas={recetas} />}
+                    element={<Eliminar recetas={recetas} actualizarRecetas={actualizarRecetas} cargando={cargando} />}
                 />
 
                 <Route path="/nosotros" element={<Nosotros />} />
