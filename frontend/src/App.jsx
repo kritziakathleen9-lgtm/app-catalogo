@@ -3,84 +3,14 @@ import { Routes, Route, Link, useParams, useLocation, useNavigate } from 'react-
 import { Search, Menu, X, Clock, ArrowRight, Trash2 } from 'lucide-react';
 import { imagenes } from './imagenes';
 import {
-  obtenerRecetas,
-  crearReceta,
-  editarReceta,
-  eliminarReceta,
-  enviarContacto
+    obtenerRecetas,
+    crearReceta,
+    editarReceta,
+    eliminarReceta,
+    enviarContacto
 } from './api';
 
-const demo = [
-    {
-        id: 1, nombre: 'Paella Valenciana',
-        pais: 'España',
-        categoria: 'Plato principal',
-        tiempo_minutos: 60,
-        imagen_url: imagenes.paella,
-        ingredientes: 'Arroz, pollo, judías verdes, azafrán, caldo',
-        preparacion: 'Prepara el sofrito, añade el arroz y cocina con el caldo.'
-    },
-    {
-        id: 2,
-        nombre: 'Ceviche Clásico',
-        pais: 'Perú',
-        categoria: 'Entrante',
-        tiempo_minutos: 25,
-        imagen_url: imagenes.ceviche,
-        ingredientes: 'Pescado, lima, cebolla roja, ají, cilantro',
-        preparacion: 'Corta el pescado, marina con lima y mezcla los ingredientes.'
-    },
-    {
-        id: 3,
-        nombre: 'Lomo Saltado',
-        pais: 'Perú',
-        categoria: 'Plato principal',
-        tiempo_minutos: 35,
-        imagen_url: imagenes.lomoSaltado,
-        ingredientes: 'Ternera, cebolla, tomate, patatas, salsa de soja',
-        preparacion: 'Saltea la carne y las verduras a fuego alto.'
-    },
-    {
-        id: 4,
-        nombre: 'Tortilla de Patatas',
-        pais: 'España',
-        categoria: 'Plato principal',
-        tiempo_minutos: 40,
-        imagen_url: imagenes.tortilla,
-        ingredientes: 'Patatas, huevos, cebolla, aceite',
-        preparacion: 'Pocha las patatas y cuaja con el huevo.'
-    },
-    {
-        id: 5,
-        nombre: 'Ají de Gallina',
-        pais: 'Perú',
-        categoria: 'Plato principal',
-        tiempo_minutos: 50,
-        imagen_url: imagenes.ajiGallina,
-        ingredientes: 'Pollo, ají amarillo, pan, leche, nueces, patatas',
-        preparacion: 'Deshilacha el pollo y cocínalo en una salsa cremosa de ají amarillo.'
-    },
-    {
-        id: 6,
-        nombre: 'Gazpacho Andaluz',
-        pais: 'España',
-        categoria: 'Entrante',
-        tiempo_minutos: 20,
-        imagen_url: imagenes.gazpacho,
-        ingredientes: 'Tomate, pepino, pimiento, ajo, aceite de oliva',
-        preparacion: 'Tritura las verduras y enfría antes de servir.'
-    },
-    {
-        id: 7,
-        nombre: 'Cachopo Asturiano',
-        pais: 'España',
-        categoria: 'Plato principal',
-        tiempo_minutos: 45,
-        imagen_url: imagenes.cachopo,
-        ingredientes: 'Filetes de ternera, jamón serrano, queso, huevo, pan rallado',
-        preparacion: 'Rellena los filetes, empánalos y fríelos hasta que estén dorados.'
-    },
-];
+const demo = [];
 
 function imagenDeReceta(r) {
     const nombre = (r.nombre || '').toLowerCase();
@@ -164,7 +94,7 @@ function Home({ recetas, error, cargando }) {
                     </div>
                 </div>
             </section>
-{/* NUESTRAS RAÍCES */}
+            {/* NUESTRAS RAÍCES */}
             <section className="wrap section">
                 <div className="sectionHead">
                     <div>
@@ -216,9 +146,9 @@ function Home({ recetas, error, cargando }) {
                 )}
 
                 {error && (
-                    <p className="notice">
-                        No se pudo conectar con FastAPI.
-                        Se muestran recetas de ejemplo.
+                    <p className="notice" role="alert">
+                        No se pudieron cargar las recetas.
+                        Por favor, inténtalo más tarde.
                     </p>
                 )}
 
@@ -240,7 +170,12 @@ function Catalogo({ recetas, error, cargando }) {
     const filtradas = recetas.filter(r => (pais === 'Todos' || r.pais?.toLowerCase() === pais.toLowerCase()) && (r.nombre || '').toLowerCase().includes(buscar.toLowerCase()));
     return <main className="wrap section"><span className="eyebrow">EXPLORA Y DESCUBRE</span><h1>Catálogo de recetas</h1><p>Encuentra tu próxima receta favorita entre los sabores de España y Perú.</p>
         {cargando && <p className="notice">Cargando recetas desde la API...</p>}
-        {error && <p className="notice">No se pudo conectar con FastAPI. Se muestran recetas de ejemplo.</p>}
+        {error && (
+            <p className="notice" role="alert">
+                No se pudieron cargar las recetas.
+                Por favor, inténtalo más tarde.
+            </p>
+        )}
         <div className="filters"><label className="search"><Search size={19} /><input placeholder="Buscar recetas..." value={buscar} onChange={e => setBuscar(e.target.value)} /></label><select value={pais} onChange={e => setPais(e.target.value)}><option>Todos</option><option>España</option><option>Perú</option></select></div>
         <div className="cards">{filtradas.map(r => <Card key={r.id} r={r} />)}</div>
         {!cargando && !filtradas.length && <p>No encontramos recetas con esos filtros.</p>}
@@ -363,118 +298,118 @@ function Nosotros() {
 }
 
 function Contacto() {
-  const [form, setForm] = useState({
-    nombre: '',
-    correo: '',
-    mensaje: ''
-  });
-
-  const [enviado, setEnviado] = useState(false);
-  const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState('');
-
-  async function enviar(e) {
-    e.preventDefault();
-    setEnviando(true);
-    setError('');
-    setEnviado(false);
-
-    try {
-      await enviarContacto(form);
-
-      setEnviado(true);
-      setForm({
+    const [form, setForm] = useState({
         nombre: '',
         correo: '',
         mensaje: ''
-      });
-    } catch (error) {
-      setError('No se pudo enviar el mensaje. Inténtalo de nuevo.');
-    } finally {
-      setEnviando(false);
+    });
+
+    const [enviado, setEnviado] = useState(false);
+    const [enviando, setEnviando] = useState(false);
+    const [error, setError] = useState('');
+
+    async function enviar(e) {
+        e.preventDefault();
+        setEnviando(true);
+        setError('');
+        setEnviado(false);
+
+        try {
+            await enviarContacto(form);
+
+            setEnviado(true);
+            setForm({
+                nombre: '',
+                correo: '',
+                mensaje: ''
+            });
+        } catch (error) {
+            setError('No se pudo enviar el mensaje. Inténtalo de nuevo.');
+        } finally {
+            setEnviando(false);
+        }
     }
-  }
 
-  return (
-    <main className="wrap section narrow">
-      <span className="eyebrow">
-        ESTAMOS AQUÍ PARA AYUDARTE
-      </span>
+    return (
+        <main className="wrap section narrow">
+            <span className="eyebrow">
+                ESTAMOS AQUÍ PARA AYUDARTE
+            </span>
 
-      <h1>Contacto y Ayuda</h1>
+            <h1>Contacto y Ayuda</h1>
 
-      <p>
-        ¿Tienes alguna pregunta o sugerencia? Escríbenos.
-      </p>
+            <p>
+                ¿Tienes alguna pregunta o sugerencia? Escríbenos.
+            </p>
 
-      <form className="form" onSubmit={enviar}>
-        <label>
-          Nombre
-          <input
-            required
-            minLength={2}
-            maxLength={100}
-            value={form.nombre}
-            onChange={e =>
-              setForm({ ...form, nombre: e.target.value })
-            }
-          />
-        </label>
+            <form className="form" onSubmit={enviar}>
+                <label>
+                    Nombre
+                    <input
+                        required
+                        minLength={2}
+                        maxLength={100}
+                        value={form.nombre}
+                        onChange={e =>
+                            setForm({ ...form, nombre: e.target.value })
+                        }
+                    />
+                </label>
 
-        <label>
-          Correo electrónico
-          <input
-            required
-            type="email"
-            maxLength={254}
-            value={form.correo}
-            onChange={e =>
-              setForm({ ...form, correo: e.target.value })
-            }
-          />
-        </label>
+                <label>
+                    Correo electrónico
+                    <input
+                        required
+                        type="email"
+                        maxLength={254}
+                        value={form.correo}
+                        onChange={e =>
+                            setForm({ ...form, correo: e.target.value })
+                        }
+                    />
+                </label>
 
-        <label>
-          Mensaje
-          <textarea
-            required
-            rows="6"
-            maxLength={2000}
-            value={form.mensaje}
-            onChange={e =>
-              setForm({ ...form, mensaje: e.target.value })
-            }
-          />
-        </label>
+                <label>
+                    Mensaje
+                    <textarea
+                        required
+                        rows="6"
+                        maxLength={2000}
+                        value={form.mensaje}
+                        onChange={e =>
+                            setForm({ ...form, mensaje: e.target.value })
+                        }
+                    />
+                </label>
 
-        <button
-          className="btn"
-          type="submit"
-          disabled={enviando}
-        >
-          {enviando ? 'Enviando...' : 'Enviar mensaje'}
-        </button>
-      </form>
+                <button
+                    className="btn"
+                    type="submit"
+                    disabled={enviando}
+                >
+                    {enviando ? 'Enviando...' : 'Enviar mensaje'}
+                </button>
+            </form>
 
-      {enviado && (
-        <div className="contact-success" role="status">
-          <strong>¡Mensaje enviado correctamente!</strong>
-          <p>Gracias por contactar con Entre Sabores.</p>
-        </div>
-      )}
+            {enviado && (
+                <div className="contact-success" role="status">
+                    <strong>¡Mensaje enviado correctamente!</strong>
+                    <p>Gracias por contactar con Entre Sabores.</p>
+                </div>
+            )}
 
-      {error && (
-        <p className="notice" role="alert">{error}</p>
-      )}
-    </main>
-  );
+            {error && (
+                <p className="notice" role="alert">{error}</p>
+            )}
+        </main>
+    );
 }
 
 
 function Legal() {
     return <main className="wrap section narrow"><span className="eyebrow">INFORMACIÓN IMPORTANTE</span><h1>Centro Legal y Privacidad</h1>{['Aviso legal', 'Política de privacidad', 'Política de cookies', 'Términos y condiciones'].map(x => <section key={x}><h2>{x}</h2><p>Contenido provisional. Antes de publicar la web es necesario redactar y revisar esta sección según el funcionamiento real del servicio y la normativa aplicable.</p></section>)}</main>;
-}export default function App() {
-    const [recetas, setRecetas] = useState(demo);
+} export default function App() {
+    const [recetas, setRecetas] = useState([]);
     const [error, setError] = useState(false);
     const [cargando, setCargando] = useState(true);
     async function actualizarRecetas() {
