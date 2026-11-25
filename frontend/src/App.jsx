@@ -407,8 +407,101 @@ function Contacto() {
 
 
 function Legal() {
-    return <main className="wrap section narrow"><span className="eyebrow">INFORMACIÓN IMPORTANTE</span><h1>Centro Legal y Privacidad</h1>{['Aviso legal', 'Política de privacidad', 'Política de cookies', 'Términos y condiciones'].map(x => <section key={x}><h2>{x}</h2><p>Contenido provisional. Antes de publicar la web es necesario redactar y revisar esta sección según el funcionamiento real del servicio y la normativa aplicable.</p></section>)}</main>;
-} export default function App() {
+    return (
+        <main className="wrap section narrow">
+            <span className="eyebrow">
+                INFORMACIÓN IMPORTANTE
+            </span>
+
+            <h1>Centro Legal y Privacidad</h1>
+
+            <section>
+                <h2>Aviso legal</h2>
+                <p>
+                    Entre Sabores es un proyecto académico desarrollado
+                    por Kritzia y Paula con el objetivo de compartir y
+                    dar a conocer la riqueza gastronómica de España y Perú.
+                </p>
+                <p>
+                    La plataforma permite consultar, añadir, editar y
+                    eliminar recetas mediante un catálogo digital
+                    interactivo.
+                </p>
+                <p>
+                    Este sitio web tiene una finalidad educativa,
+                    informativa y no comercial.
+                </p>
+            </section>
+
+            <section>
+                <h2>Política de privacidad</h2>
+                <p>
+                    Entre Sabores recoge los datos facilitados
+                    voluntariamente a través del formulario de contacto:
+                    nombre, correo electrónico y mensaje.
+                </p>
+                <p>
+                    Estos datos se almacenan en Supabase y se utilizan
+                    para gestionar las consultas recibidas y comprobar
+                    el funcionamiento del proyecto académico.
+                </p>
+                <p>
+                    Se recomienda no introducir información sensible
+                    ni confidencial en el formulario.
+                </p>
+                <p>
+                    Los usuarios pueden solicitar el acceso,
+                    la rectificación o la eliminación de sus datos
+                    personales a las responsables del proyecto.
+                </p>
+            </section>
+
+            <section>
+                <h2>Política de cookies</h2>
+                <p>
+                    Entre Sabores es una aplicación web desarrollada
+                    con fines educativos.
+                </p>
+                <p>
+                    La plataforma utiliza servicios externos de
+                    alojamiento y gestión de datos, como Render
+                    y Supabase.
+                </p>
+                <p>
+                    Los usuarios pueden consultar y gestionar las
+                    cookies desde la configuración de su navegador.
+                </p>
+            </section>
+
+            <section>
+                <h2>Términos y condiciones</h2>
+                <p>
+                    El uso de Entre Sabores debe realizarse de forma
+                    responsable y respetuosa.
+                </p>
+                <p>
+                    Los usuarios deberán evitar introducir contenido
+                    ofensivo, información falsa o datos personales
+                    de terceros sin su autorización.
+                </p>
+                <p>
+                    Las recetas publicadas tienen una finalidad
+                    informativa y educativa. Los usuarios deberán
+                    tener en cuenta sus necesidades alimentarias,
+                    alergias e intolerancias.
+                </p>
+                <p>
+                    Al tratarse de un proyecto académico, sus
+                    funcionalidades y contenidos pueden modificarse
+                    durante su desarrollo.
+                </p>
+            </section>
+
+        </main>
+    );
+}
+
+export default function App() {
     const [recetas, setRecetas] = useState([]);
     const [error, setError] = useState(false);
     const [cargando, setCargando] = useState(true);
