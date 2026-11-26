@@ -2,11 +2,13 @@
 const BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 // GET - Obtener todas las recetas
-export async function obtenerRecetas() {
-  const r = await fetch(`${BASE}/recetas`);
+export async function obtenerRecetas(q = "") {
+  const r = await fetch(
+    `${BASE}/recetas?q=${encodeURIComponent(q)}`
+  );
 
   if (!r.ok) {
-    throw new Error("No se pudieron cargar las recetas");
+    throw new Error("No se pudieron obtener las recetas");
   }
 
   return r.json();
@@ -84,4 +86,20 @@ export async function enviarContacto(datos) {
   }
 
   return respuesta.json();
+}
+
+export async function cambiarFavorito(id, favorito) {
+  const r = await fetch(`${BASE}/recetas/${id}/favorito`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ favorito })
+  });
+
+  if (!r.ok) {
+    throw new Error("No se pudo actualizar el favorito");
+  }
+
+  return r.json();
 }

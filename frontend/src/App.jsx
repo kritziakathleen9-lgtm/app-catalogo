@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link, useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Menu, X, Clock, ArrowRight, Trash2 } from 'lucide-react';
+import { Search, Menu, X, Clock, ArrowRight, Trash2, Heart } from 'lucide-react';
 import { imagenes } from './imagenes';
 import {
     obtenerRecetas,
     crearReceta,
     editarReceta,
     eliminarReceta,
-    enviarContacto
+    enviarContacto,
+    cambiarFavorito
 } from './api';
 
 const demo = [];
@@ -50,13 +51,72 @@ function Footer() {
         <div><h3>Ayuda y legal</h3><Link to="/contacto">Contacto</Link><Link to="/legal">Privacidad y cookies</Link></div>
     </div><div className="wrap copyright">© 2026 Entre Sabores · Proyecto educativo</div></footer>;
 }
-function Card({ r }) {
-    return <Link to={'/recetas/' + r.id} className="recipeCard">
-        <img src={r.imagen_url || imagenDeReceta(r)} alt={r.nombre} onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = imagenDeReceta(r); }} />
-        <div className="cardBody"><span className="eyebrow">{r.pais || 'Receta'} · {r.categoria || 'Cocina casera'}</span><h3>{r.nombre}</h3><span className="time"><Clock size={15} />{r.tiempo_minutos || '—'} min</span></div>
-    </Link>;
-}
 
+function Card({ r }) {
+    const [favorito, setFavorito] = useState(r.favorito ?? false);
+    const [guardando, setGuardando] = useState(false);
+
+    useEffect(() => {
+        setFavorito(r.favorito ?? false);
+    }, [r.favorito]);
+
+    async function alternarFavorito() {
+        setGuardando(true);
+
+        try {
+            const data = await cambiarFavorito(r.id, !favorito);
+            setFavorito(data.favorito);
+        } catch {
+            alert('No se pudo actualizar el favorito.');
+        } finally {
+            setGuardando(false);
+        }
+    }
+
+    return (
+        <div className="recipeCardContainer">
+            <Link to={'/recetas/' + r.id} className="recipeCard">
+                <img
+                    src={r.imagen_url || imagenDeReceta(r)}
+                    alt={r.nombre}
+                    onError={e => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = imagenDeReceta(r);
+                    }}
+                />
+
+                <div className="cardBody">
+                    <span className="eyebrow">
+                        {r.pais || 'Receta'} · {r.categoria || 'Cocina casera'}
+                    </span>
+
+                    <h3>{r.nombre}</h3>
+
+                    <span className="time">
+                        <Clock size={15} />
+                        {r.tiempo_minutos || '—'} min
+                    </span>
+                </div>
+            </Link>
+
+            <button
+                type="button"
+                className="favoriteButton"
+                onClick={alternarFavorito}
+                disabled={guardando}
+                aria-pressed={favorito}
+                aria-label={favorito ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+                title={favorito ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+            >
+                <Heart
+                    size={21}
+                    color="#A65236"
+                    fill={favorito ? '#A65236' : 'none'}
+                />
+            </button>
+        </div>
+    );
+}
 
 function Home({ recetas, error, cargando }) {
     return (
@@ -164,22 +224,118 @@ function Home({ recetas, error, cargando }) {
 function Catalogo({ recetas, error, cargando }) {
     const loc = useLocation();
     const q = new URLSearchParams(loc.search);
+
     const [buscar, setBuscar] = useState('');
     const [pais, setPais] = useState(q.get('pais') || 'Todos');
-    useEffect(() => setPais(q.get('pais') || 'Todos'), [loc.search]);
-    const filtradas = recetas.filter(r => (pais === 'Todos' || r.pais?.toLowerCase() === pais.toLowerCase()) && (r.nombre || '').toLowerCase().includes(buscar.toLowerCase()));
-    return <main className="wrap section"><span className="eyebrow">EXPLORA Y DESCUBRE</span><h1>Catálogo de recetas</h1><p>Encuentra tu próxima receta favorita entre los sabores de España y Perú.</p>
-        {cargando && <p className="notice">Cargando recetas desde la API...</p>}
-        {error && (
-            <p className="notice" role="alert">
-                No se pudieron cargar las recetas.
-                Por favor, inténtalo más tarde.
+    const [resultados, setResultados] = useState([]);
+    const [buscando, setBuscando] = useState(false);
+    const [errorBusqueda, setErrorBusqueda] = useState(false);
+
+    useEffect(() => {
+        setPais(new URLSearchParams(loc.search).get('pais') || 'Todos');
+    }, [loc.search]);
+
+    useEffect(() => {
+        let activo = true;
+
+        setErrorBusqueda(false);
+
+        if (!buscar.trim()) {
+            setResultados([]);
+            setBuscando(false);
+            return;
+        }
+
+        setBuscando(true);
+
+        const temporizador = setTimeout(async () => {
+            try {
+                const data = await obtenerRecetas(buscar.trim());
+
+                if (activo) {
+                    setResultados(data.map(normalizar));
+                }
+            } catch {
+                if (activo) {
+                    setErrorBusqueda(true);
+                    setResultados([]);
+                }
+            } finally {
+                if (activo) {
+                    setBuscando(false);
+                }
+            }
+        }, 300);
+
+        return () => {
+            activo = false;
+            clearTimeout(temporizador);
+        };
+    }, [buscar]);
+
+    const lista = buscar.trim() ? resultados : recetas;
+
+    const filtradas = lista.filter(r =>
+        pais === 'Todos' ||
+        r.pais?.toLowerCase() === pais.toLowerCase()
+    );
+
+    return (
+        <main className="wrap section">
+            <span className="eyebrow">EXPLORA Y DESCUBRE</span>
+
+            <h1>Catálogo de recetas</h1>
+
+            <p>
+                Encuentra tu próxima receta favorita entre
+                los sabores de España y Perú.
             </p>
-        )}
-        <div className="filters"><label className="search"><Search size={19} /><input placeholder="Buscar recetas..." value={buscar} onChange={e => setBuscar(e.target.value)} /></label><select value={pais} onChange={e => setPais(e.target.value)}><option>Todos</option><option>España</option><option>Perú</option></select></div>
-        <div className="cards">{filtradas.map(r => <Card key={r.id} r={r} />)}</div>
-        {!cargando && !filtradas.length && <p>No encontramos recetas con esos filtros.</p>}
-    </main>;
+
+            {(cargando || buscando) && (
+                <p className="notice">
+                    Cargando recetas desde la API...
+                </p>
+            )}
+
+            {(error || errorBusqueda) && (
+                <p className="notice" role="alert">
+                    No se pudieron cargar las recetas.
+                    Por favor, inténtalo más tarde.
+                </p>
+            )}
+
+            <div className="filters">
+                <label className="search">
+                    <Search size={19} />
+                    <input
+                        placeholder="Buscar recetas..."
+                        value={buscar}
+                        onChange={e => setBuscar(e.target.value)}
+                    />
+                </label>
+
+                <select
+                    value={pais}
+                    onChange={e => setPais(e.target.value)}
+                >
+                    <option>Todos</option>
+                    <option>España</option>
+                    <option>Perú</option>
+                </select>
+            </div>
+
+            <div className="cards">
+                {!buscando && filtradas.map(r => (
+                    <Card key={r.id} r={r} />
+                ))}
+            </div>
+
+            {!cargando && !buscando && !error &&
+                !errorBusqueda && !filtradas.length && (
+                    <p>No encontramos recetas con esos filtros.</p>
+                )}
+        </main>
+    );
 }
 
 function Detalle({ recetas }) {

@@ -17,7 +17,7 @@ app.add_middleware(
         os.getenv("FRONTEND_URL", "http://localhost:5173")
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
     allow_headers=["*"]
 )
 
@@ -31,6 +31,8 @@ class Receta(BaseModel):
     tiempo_minutos: int = Field(gt=0)
     imagen_url: str | None = None
 
+class Favorito(BaseModel):
+    favorito: bool
 
 class Contacto(BaseModel):
     nombre: str = Field(min_length=2, max_length=100)
@@ -50,10 +52,17 @@ def conectar_db():
 
 
 @app.get("/recetas")
-def listar_recetas():
+def listar_recetas(q: str | None = None):
     with conectar_db() as conexion:
         with conexion.cursor() as cursor:
-            cursor.execute("SELECT * FROM recetas")
+            if q:
+                cursor.execute(
+                    "SELECT * FROM recetas WHERE nombre ILIKE %s",
+                    (f"%{q}%",)
+                )
+            else:
+                cursor.execute("SELECT * FROM recetas")
+
             recetas = cursor.fetchall()
 
     return recetas
@@ -149,6 +158,30 @@ def editar_receta(id: int, receta: Receta):
         )
 
     return {"mensaje": "Receta actualizada correctamente"}
+
+@app.patch("/recetas/{id}/favorito")
+def cambiar_favorito(id: int, datos: Favorito):
+    with conectar_db() as conexion:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE recetas
+                SET favorito = %s
+                WHERE id = %s
+                RETURNING id, favorito
+                """,
+                (datos.favorito, id)
+            )
+
+            receta = cursor.fetchone()
+
+            if receta is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Receta no encontrada"
+                )
+
+    return receta
 
 @app.delete("/recetas/{id}", status_code=204)
 def eliminar_receta(id: int):
