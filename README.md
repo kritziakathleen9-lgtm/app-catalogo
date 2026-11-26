@@ -418,7 +418,7 @@ El diseño inicial se realizó utilizando Google Stitch y posteriormente se adap
 - Configuración CORS.
 - Gestión de errores HTTP.
 - Confirmación antes de eliminar recetas.
-- Row Level Security en la tabla de contactos.
+- Row Level Security (RLS) activado en las tablas recetas y contactos.
 - Separación entre frontend y backend.
 
 La aplicación tiene una finalidad académica. Actualmente, las operaciones de gestión de recetas no requieren autenticación de usuarios.
