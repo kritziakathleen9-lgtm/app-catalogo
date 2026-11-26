@@ -1,94 +1,172 @@
-
-# 🍴 Entre Sabores
+# 🍽️ Entre Sabores
 
 ### Dos culturas, infinitos sabores
 
-Entre Sabores es un recetario digital dedicado a la gastronomía española y peruana. Permite explorar, buscar, añadir, editar y eliminar recetas mediante una interfaz intuitiva conectada a una API REST propia y una base de datos PostgreSQL.
+Entre Sabores es una aplicación web Full Stack que reúne recetas tradicionales de la gastronomía española y peruana en un mismo catálogo digital.
 
-Proyecto educativo Full Stack desarrollado en equipo.
+El proyecto permite descubrir, buscar, filtrar, añadir, editar, eliminar y marcar recetas como favoritas mediante una interfaz intuitiva, responsive y conectada a una base de datos real.
 
-## 🌐 Aplicación en producción
+## 🌐 Proyecto desplegado
 
-La aplicación está desplegada en Render y permite acceder a sus funcionalidades sin necesidad de realizar una instalación local.
+- [Aplicación web](https://app-catalogo-rx85.onrender.com)
+- [API REST](https://entre-sabores-api.onrender.com)
+- [Documentación Swagger](https://entre-sabores-api.onrender.com/docs)
 
-| Servicio | Enlace |
-|---|---|
-| Frontend | [Entre Sabores](https://app-catalogo-rx85.onrender.com) |
-| Backend | [API REST](https://entre-sabores-api.onrender.com) |
-| Documentación | [Swagger UI](https://entre-sabores-api.onrender.com/docs) |
-| Repositorio | [GitHub](https://github.com/kritziakathleen9-lgtm/app-catalogo) |
+## 🎯 Objetivo del proyecto
 
-> El backend está alojado en Render. Si el servicio está inactivo, la primera petición puede tardar unos segundos adicionales.
-
-## 🎯 Objetivo
-
-Desarrollar una aplicación web funcional que integre frontend, backend y base de datos, aplicando los conocimientos adquiridos sobre React, Python, FastAPI, SQL y consumo de APIs REST.
-
-Además, el proyecto busca acercar la gastronomía española y peruana a los usuarios mediante una experiencia digital accesible, intuitiva y visualmente atractiva.
-
-## ✨ Funcionalidades
-
-- Visualización de recetas españolas y peruanas.
-- Búsqueda de recetas por nombre.
-- Filtrado por país.
-- Consulta detallada de recetas.
-- Creación, edición y eliminación de recetas.
-- Validación de formularios.
-- Almacenamiento persistente en PostgreSQL.
-- Gestión de imágenes mediante URLs.
-- Imagen predeterminada para recetas sin fotografía.
-- Formulario de contacto conectado a la base de datos.
-- Mensajes de confirmación y gestión de errores.
-- Confirmación antes de eliminar una receta.
-- Mensaje informativo cuando no existen resultados.
-- Navegación entre páginas.
-- Diseño responsive.
-- Favicon personalizado.
-- Centro legal y privacidad.
+Desarrollar una aplicación Full Stack funcional, accesible e intuitiva, poniendo en práctica la creación de una API REST propia, la gestión de bases de datos relacionales, el desarrollo frontend y el despliegue en producción.
 
 ## 🛠️ Tecnologías utilizadas
 
 ### Frontend
 
+- React
+- JavaScript
 - HTML5
 - CSS3
-- JavaScript
-- React
-- React Router DOM
 - Vite
+- React Router DOM
 - Lucide React
+- Google Stitch
 
 ### Backend
 
-- Python
+- Python 3.14
 - FastAPI
 - Pydantic
 - Psycopg
-- Uvicorn
 - Python-dotenv
+- Uvicorn
 
-### Base de datos
+### Base de datos y herramientas
 
-- PostgreSQL
 - Supabase
-- Supabase Storage
-
-### Diseño y herramientas de desarrollo
-
-- Visual Studio Code
-- Google Stitch
-- Git
-- GitHub
-- Swagger UI
+- PostgreSQL
+- Render
+- Git y GitHub
 - Postman
+- Swagger UI
+- Visual Studio Code
 
-### Despliegue
+## ✨ Funcionalidades
 
-- Render Web Service — Backend.
-- Render Static Site — Frontend.
-- Supabase — Base de datos PostgreSQL.
+- Catálogo de recetas españolas y peruanas.
+- Visualización del detalle de cada receta.
+- Creación, edición y eliminación de recetas.
+- Buscador conectado directamente a la API.
+- Filtro por país.
+- Sistema de favoritos persistente en la base de datos.
+- Formulario de contacto conectado a Supabase.
+- Diseño responsive para móviles, tablets y ordenadores.
+- Validación de formularios.
+- Gestión de errores y estados de carga.
+- Aviso legal, política de privacidad, política de cookies y términos y condiciones.
 
-## 📂 Estructura del proyecto
+## 🏗️ Arquitectura
+
+La aplicación está organizada en tres capas:
+
+1. **Frontend:** React gestiona la interfaz y realiza peticiones HTTP mediante Fetch.
+2. **Backend:** FastAPI recibe las peticiones, valida los datos y ejecuta consultas SQL parametrizadas mediante Psycopg.
+3. **Base de datos:** PostgreSQL, alojado en Supabase, almacena las recetas y los mensajes de contacto.
+
+Flujo de comunicación:
+
+**React → FastAPI → Psycopg → Supabase**
+
+Los datos se devuelven al frontend en formato JSON.
+
+## 🗄️ Base de datos
+
+### Tabla recetas
+
+| Campo | Tipo |
+|---|---|
+| id | Entero autogenerado |
+| nombre | Texto |
+| pais | Texto |
+| categoria | Texto |
+| ingredientes | Texto |
+| preparacion | Texto |
+| tiempo_minutos | Entero |
+| imagen_url | Texto opcional |
+| favorito | Booleano |
+
+El campo `favorito` tiene como valor predeterminado `false`.
+
+### Tabla contactos
+
+| Campo |
+|---|
+| id |
+| nombre |
+| correo |
+| mensaje |
+
+Ambas tablas tienen Row Level Security (RLS) activado.
+
+## 🔌 Endpoints de la API
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | / | Mensaje de bienvenida |
+| GET | /recetas | Listar todas las recetas |
+| GET | /recetas?q=paella | Buscar recetas por nombre |
+| GET | /recetas/{id} | Obtener una receta |
+| POST | /recetas | Crear una receta |
+| PUT | /recetas/{id} | Editar una receta |
+| DELETE | /recetas/{id} | Eliminar una receta |
+| PATCH | /recetas/{id}/favorito | Actualizar el estado de favorito |
+| POST | /contactos | Guardar un mensaje de contacto |
+
+## 🚀 Funcionalidades adicionales
+
+### Códigos de estado HTTP
+
+- 200 OK: petición realizada correctamente.
+- 201 Created: recurso creado correctamente.
+- 204 No Content: receta eliminada correctamente sin cuerpo de respuesta.
+- 404 Not Found: receta no encontrada.
+- 422 Unprocessable Entity: error de validación de datos.
+
+### Validaciones con Pydantic
+
+Se utiliza `Field` para validar los datos recibidos por la API:
+
+- Campos de texto obligatorios y no vacíos.
+- Tiempo de preparación mayor que cero.
+- Límites de longitud en los campos del formulario de contacto.
+- Validación del campo booleano de favoritos.
+
+### Buscador mediante SQL ILIKE
+
+La búsqueda de recetas se realiza directamente en la base de datos mediante el parámetro opcional `q`.
+
+Ejemplo: `/recetas?q=paella`
+
+Se utiliza `ILIKE` para permitir búsquedas parciales sin distinguir entre mayúsculas y minúsculas.
+
+El frontend incorpora una espera de 300 milisegundos antes de realizar la búsqueda para reducir las peticiones innecesarias.
+
+### Sistema de favoritos
+
+Cada receta dispone de un campo booleano que permite marcarla o desmarcarla como favorita mediante una petición PATCH.
+
+Los cambios se almacenan en Supabase y permanecen al actualizar la página.
+
+Al tratarse de una aplicación sin autenticación, los favoritos son compartidos entre los visitantes.
+
+### Configuración de CORS
+
+El backend utiliza la variable de entorno `FRONTEND_URL` para autorizar únicamente el origen del frontend correspondiente a cada entorno.
+
+Se permiten los métodos GET, POST, PUT, DELETE y PATCH.
+
+### Consultas SQL parametrizadas
+
+Las consultas que reciben datos externos utilizan parámetros `%s` para evitar la concatenación directa de valores en las instrucciones SQL y prevenir inyecciones SQL.
+
+## 📁 Estructura del proyecto
 
 ```text
 app-catalogo/
@@ -96,172 +174,25 @@ app-catalogo/
 │   ├── main.py
 │   ├── requirements.txt
 │   └── .env.example
-│
 ├── frontend/
-│   ├── public/
-│   │   ├── images/
-│   │   └── favicon.png
 │   ├── src/
-│   │   ├── api.js
 │   │   ├── App.jsx
+│   │   ├── api.js
 │   │   ├── imagenes.js
 │   │   ├── main.jsx
 │   │   └── style.css
 │   ├── index.html
 │   ├── package.json
 │   └── package-lock.json
-│
 ├── .gitignore
 └── README.md
 ```
 
-## 🏗️ Arquitectura
-
-```text
-              USUARIO
-                 │
-                 ▼
-        FRONTEND — React
-         Render Static Site
-                 │
-       Peticiones HTTP / JSON
-                 │
-                 ▼
-        BACKEND — FastAPI
-         Render Web Service
-                 │
-           Psycopg / SQL
-                 │
-                 ▼
-     BASE DE DATOS — PostgreSQL
-              Supabase
-```
-
-El frontend consume una API REST desarrollada con FastAPI mediante peticiones HTTP.
-
-El backend recibe las solicitudes, valida los datos mediante Pydantic y ejecuta las consultas SQL utilizando Psycopg.
-
-Supabase proporciona la base de datos PostgreSQL, permitiendo almacenar los datos de forma persistente.
-
-Las fotografías pueden almacenarse en Supabase Storage y mostrarse mediante sus URLs públicas.
-
-## 🗄️ Base de datos
-
-### Tabla recetas
-
-| Campo | Descripción |
-|---|---|
-| id | Identificador automático |
-| nombre | Nombre de la receta |
-| pais | País de origen |
-| categoria | Tipo de plato |
-| ingredientes | Ingredientes necesarios |
-| preparacion | Instrucciones de preparación |
-| tiempo_minutos | Tiempo de preparación en minutos |
-| imagen_url | URL de la fotografía |
-
-La tabla contiene más de seis recetas de la gastronomía española y peruana.
-
-El campo `tiempo_minutos` permite almacenar un valor numérico y el identificador se genera automáticamente.
-
-### Tabla contactos
-
-| Campo | Descripción |
-|---|---|
-| id | Identificador automático |
-| nombre | Nombre del visitante |
-| correo | Correo electrónico |
-| mensaje | Contenido del mensaje |
-| fecha | Fecha de envío |
-
-Esta tabla permite almacenar los mensajes enviados desde el formulario de contacto.
-
-## 🔌 Endpoints de la API
-
-| Método | Endpoint | Descripción |
-|---|---|---|
-| GET | `/` | Bienvenida a la API |
-| GET | `/recetas` | Obtener todas las recetas |
-| GET | `/recetas/{id}` | Obtener una receta por ID |
-| POST | `/recetas` | Crear una receta |
-| PUT | `/recetas/{id}` | Actualizar una receta |
-| DELETE | `/recetas/{id}` | Eliminar una receta |
-| POST | `/contactos` | Registrar un mensaje de contacto |
-
-### Operaciones CRUD
-
-| Operación | Método HTTP | Funcionalidad |
-|---|---|---|
-| Create | POST | Crear recetas |
-| Read | GET | Consultar recetas |
-| Update | PUT | Editar recetas |
-| Delete | DELETE | Eliminar recetas |
-
-### Códigos de respuesta HTTP
-
-| Código | Descripción |
-|---|---|
-| 200 | Operación realizada correctamente |
-| 201 | Registro creado correctamente |
-| 404 | Recurso no encontrado |
-| 422 | Error de validación |
-
-### Ejemplo de creación de una receta
-
-**POST /recetas**
-
-```json
-{
-  "nombre": "Ceviche clásico",
-  "pais": "Perú",
-  "categoria": "Entrante",
-  "ingredientes": "Pescado, lima, cebolla roja, ají y cilantro",
-  "preparacion": "Cortar el pescado y marinarlo con zumo de lima.",
-  "tiempo_minutos": 25,
-  "imagen_url": null
-}
-```
-
-### Ejemplo de error 404
-
-Al consultar, editar o eliminar una receta cuyo ID no existe, la API devuelve el código HTTP 404.
-
-```json
-{
-  "detail": "Receta no encontrada"
-}
-```
-
-### Ejemplo de mensaje de contacto
-
-**POST /contactos**
-
-```json
-{
-  "nombre": "Usuario de prueba",
-  "correo": "prueba@example.com",
-  "mensaje": "Me encantan las recetas de Entre Sabores."
-}
-```
-
-El formulario almacena los mensajes en la base de datos. Actualmente no realiza envíos de correo electrónico.
-
-## 🚀 Instalación y ejecución local
-
-### Requisitos previos
-
-- Python 3.14.
-- Node.js y npm.
-- Git.
-- Una base de datos PostgreSQL configurada en Supabase.
+## 💻 Instalación y ejecución local
 
 ### 1. Clonar el repositorio
 
-```bash
-git clone https://github.com/kritziakathleen9-lgtm/app-catalogo.git
-cd app-catalogo
-git switch main
-```
+Clonar el repositorio desde GitHub y acceder a la carpeta `app-catalogo`.
 
 ### 2. Configurar el backend
 
@@ -270,10 +201,10 @@ cd backend
 python -m venv .venv
 ```
 
-Activar el entorno virtual en Windows utilizando Git Bash:
+Activar el entorno virtual en Windows PowerShell:
 
-```bash
-source .venv/Scripts/activate
+```powershell
+.venv\Scripts\Activate.ps1
 ```
 
 Instalar las dependencias:
@@ -282,246 +213,152 @@ Instalar las dependencias:
 python -m pip install -r requirements.txt
 ```
 
-### 3. Configurar las variables de entorno
-
-Crear un archivo `.env` dentro de la carpeta `backend`, utilizando `.env.example` como referencia.
+Crear un archivo `.env` dentro de `backend` tomando como referencia `.env.example`:
 
 ```env
-DATABASE_URL=tu_cadena_de_conexion_postgresql
+DATABASE_URL=tu_url_de_conexion_a_supabase
+FRONTEND_URL=http://localhost:5173
 ```
 
-Es necesario disponer de una base de datos PostgreSQL con las tablas `recetas` y `contactos` configuradas.
-
-El archivo `.env` contiene información privada y no debe subirse a GitHub.
-
-### 4. Ejecutar el backend
+Iniciar el servidor:
 
 ```bash
 python -m uvicorn main:app --reload
 ```
 
-API local:
+- API local: http://127.0.0.1:8000
+- Swagger: http://127.0.0.1:8000/docs
 
-http://127.0.0.1:8000
+### 3. Configurar el frontend
 
-Documentación Swagger:
-
-http://127.0.0.1:8000/docs
-
-### 5. Configurar el frontend
-
-Abrir una segunda terminal desde la raíz del proyecto:
+Desde otra terminal:
 
 ```bash
 cd frontend
 npm install
 ```
 
-Crear un archivo `.env` dentro de la carpeta `frontend`.
-
-Para utilizar el backend local:
+Crear un archivo `.env` dentro de `frontend`:
 
 ```env
 VITE_API_URL=http://127.0.0.1:8000
 ```
 
-Para utilizar el backend publicado en Render:
-
-```env
-VITE_API_URL=https://entre-sabores-api.onrender.com
-```
-
-### 6. Ejecutar el frontend
+Iniciar el frontend:
 
 ```bash
 npm run dev
 ```
 
-Aplicación disponible normalmente en:
+Aplicación local: http://localhost:5173
 
-http://localhost:5173
+## ☁️ Despliegue
 
-## ☁️ Despliegue en Render
+La aplicación utiliza Render para alojar sus dos servicios:
 
-El frontend y el backend están desplegados como servicios independientes dentro del mismo proyecto de Render.
+- **Backend:** Web Service con FastAPI.
+- **Frontend:** Static Site generado con Vite.
+- **Base de datos:** PostgreSQL alojado en Supabase.
 
-### Backend
+Las variables de entorno se configuran directamente en Render, sin publicar las credenciales de la base de datos en GitHub.
 
-- Tipo de servicio: Web Service.
-- Rama: `main`.
-- Directorio raíz: `backend`.
-- Variable de entorno: `DATABASE_URL`.
+El frontend utiliza una regla Rewrite hacia `index.html` para permitir la navegación y recarga de las rutas de React Router.
 
-### Frontend
+## 🧪 Pruebas realizadas
 
-- Tipo de servicio: Static Site.
-- Rama: `main`.
-- Directorio raíz: `frontend`.
-- Build Command:
+- Conexión entre frontend, backend y Supabase.
+- Operaciones CRUD completas.
+- Validaciones de datos mediante Pydantic.
+- Respuestas 201, 204, 404 y 422.
+- Búsquedas parciales y en mayúsculas y minúsculas.
+- Búsquedas sin resultados.
+- Filtros por país.
+- Comprobación de peticiones mediante Network.
+- Marcado y desmarcado de favoritos.
+- Persistencia de favoritos en Supabase.
+- Comprobación de orígenes autorizados y no autorizados mediante CORS.
+- Envío y almacenamiento de mensajes de contacto.
+- Adaptación a diferentes tamaños de pantalla.
 
-```bash
-npm install && npm run build
-```
-
-- Publish Directory: `dist`.
-- Variable de entorno:
-
-```env
-VITE_API_URL=https://entre-sabores-api.onrender.com
-```
-
-### Configuración de React Router
-
-Para permitir el acceso directo a las rutas internas y evitar errores al recargar la página, se ha configurado la siguiente regla en Render:
-
-| Source | Destination | Action |
-|---|---|---|
-| `/*` | `/index.html` | Rewrite |
-
-También se ha configurado CORS en el backend para permitir la comunicación con el frontend publicado.
+Las funcionalidades adicionales se han comprobado en el entorno local.
 
 ## 🎨 Diseño e identidad visual
 
-Entre Sabores utiliza una estética cálida y elegante inspirada en la cocina tradicional española y peruana.
+La identidad visual está inspirada en la gastronomía tradicional española y peruana, utilizando una estética cálida, elegante y minimalista.
 
 ### Paleta de colores
 
 | Color | Código |
 |---|---|
-| Crema | `#f8f4ec` |
-| Terracota | `#a65236` |
-| Verde | `#394a36` |
-| Café oscuro | `#2d2925` |
+| Crema | #F8F4EC |
+| Terracota | #A65236 |
+| Café oscuro | #2D2925 |
+| Verde oliva | #394A36 |
 
 ### Tipografías
 
-- Playfair Display: títulos y elementos destacados.
-- DM Sans: textos, navegación y formularios.
+- Playfair Display
+- DM Sans
 
-### Características visuales
+## 👥 Equipo de desarrollo
 
-- Fotografías gastronómicas.
-- Iconografía minimalista.
-- Tarjetas de recetas.
-- Hero panorámico.
-- Navegación intuitiva.
-- Diseño adaptable a ordenadores, tablets y móviles.
+### Kritzia — Frontend e integración
 
-El diseño inicial se realizó utilizando Google Stitch y posteriormente se adaptó e integró con React.
+- Diseño de la interfaz e identidad visual mediante Google Stitch.
+- Desarrollo y personalización del frontend con React, JavaScript y CSS.
+- Implementación de la navegación mediante React Router DOM.
+- Adaptación responsive para diferentes dispositivos.
+- Desarrollo de interfaces y formularios para la gestión de recetas.
+- Integración del frontend con la API REST mediante Fetch.
+- Gestión de estados, errores y peticiones HTTP.
+- Configuración y despliegue de la aplicación en Render.
 
-## 🔒 Seguridad y buenas prácticas
-
-- Variables de entorno para proteger las credenciales.
-- Archivos `.env` excluidos mediante `.gitignore`.
-- Consultas SQL parametrizadas.
-- Validación de datos mediante Pydantic.
-- Configuración CORS.
-- Gestión de errores HTTP.
-- Confirmación antes de eliminar recetas.
-- Row Level Security (RLS) activado en las tablas recetas y contactos.
-- Separación entre frontend y backend.
-
-La aplicación tiene una finalidad académica. Actualmente, las operaciones de gestión de recetas no requieren autenticación de usuarios.
-
-Para un entorno comercial sería necesario incorporar autenticación, autorización, protección frente a usos indebidos y completar la revisión de privacidad.
-
-## 🧪 Pruebas realizadas
-
-Se han realizado pruebas de los endpoints de la API mediante Postman y Swagger UI, además de pruebas funcionales desde la aplicación publicada en Render.
-
-Estas comprobaciones han permitido verificar las operaciones CRUD, la gestión de errores HTTP, la persistencia de los datos y la comunicación entre el frontend, el backend y la base de datos.
-
-
-| Prueba | Resultado |
-|---|---|
-| Consultar catálogo de recetas | Correcto |
-| Consultar detalle de una receta | Correcto |
-| Crear una receta | Correcto |
-| Editar una receta | Correcto |
-| Eliminar una receta | Correcto |
-| Buscar recetas por nombre | Correcto |
-| Filtrar recetas por país | Correcto |
-| Búsqueda sin resultados | Correcto |
-| Formulario de contacto | Correcto |
-| Almacenamiento de contactos en Supabase | Correcto |
-| GET con ID inexistente | 404 |
-| PUT con ID inexistente | 404 |
-| DELETE con ID inexistente | 404 |
-| Comunicación frontend y backend | Correcto |
-| Navegación y recarga de rutas | Correcto |
-| Diseño responsive | Correcto |
-
-Las pruebas de creación, edición y eliminación se realizaron utilizando una receta temporal para evitar modificar los datos originales.
-
-## 🌿 Organización de ramas
-
-| Rama | Función |
-|---|---|
-| main | Versión estable y publicada |
-| dev | Integración y desarrollo |
-| feat-kritzia | Desarrollo individual |
-| feat-paula | Desarrollo individual |
-
-El proyecto se ha desarrollado de manera colaborativa utilizando Git y GitHub para gestionar las versiones e integrar los cambios.
-
-## 👩‍💻 Autoras
-
-### Kritzia
-
-- Diseño e identidad visual del proyecto.
-- Creación del prototipo mediante Google Stitch.
-- Desarrollo y adaptación del frontend con React.
-- Integración del frontend con la API REST.
-- Diseño responsive para distintos dispositivos.
-- Configuración y despliegue del frontend y backend en Render.
-- Pruebas funcionales de la aplicación en producción.
-- Elaboración y actualización de la documentación.
-
-### Paula
+### Paula — Backend y base de datos
 
 - Creación y configuración de la base de datos en Supabase.
+- Diseño y estructuración de las tablas y sus campos.
 - Desarrollo de funcionalidades del backend con FastAPI.
 - Implementación de las operaciones CRUD.
-- Integración de la API con PostgreSQL.
-- Pruebas de los endpoints mediante Postman.
-- Comprobación del funcionamiento de la API.
+- Integración de la API con PostgreSQL mediante Psycopg.
+- Pruebas y comprobación de los endpoints mediante Postman.
+- Gestión de la persistencia de los datos.
+- Comprobación del funcionamiento de la API REST.
 
 ### Trabajo colaborativo
 
-- Definición del proyecto y su temática.
-- Planificación y organización de tareas.
-- Selección de recetas españolas y peruanas.
+- Definición de la temática, objetivos y funcionalidades del proyecto.
+- Selección y organización del contenido gastronómico.
 - Integración del frontend, backend y base de datos.
-- Control de versiones mediante Git y GitHub.
-- Revisión del funcionamiento de la aplicación.
-- Preparación de la presentación y entrega final.
+- Incorporación de funcionalidades adicionales: buscador, favoritos, validaciones y códigos de estado HTTP.
+- Configuración de seguridad, CORS y variables de entorno.
+- Gestión de ramas y control de versiones mediante Git y GitHub.
+- Pruebas funcionales, resolución de errores y mejoras de la aplicación.
+- Elaboración de la documentación técnica.
+- Preparación de la presentación y demostración final del proyecto.
+
+## 🌿 Gestión de ramas
+
+- `main`: versión estable del proyecto.
+- `dev`: rama de integración y desarrollo.
+- `feat-kritzia`: desarrollo individual.
+- `feat-paula`: desarrollo individual.
 
 ## 📚 Aprendizajes
 
-Durante el desarrollo de Entre Sabores hemos aplicado conocimientos relacionados con:
+Durante el desarrollo del proyecto hemos puesto en práctica:
 
 - Desarrollo de aplicaciones Full Stack.
 - Creación y consumo de APIs REST.
-- Operaciones CRUD.
 - Gestión de bases de datos relacionales.
-- Validación de datos.
-- Diseño de interfaces responsive.
-- Control de versiones con Git.
-- Trabajo colaborativo.
-- Despliegue de aplicaciones web.
-
-## 📌 Estado del proyecto
-
-**Implementado, desplegado y probado en producción.**
-
-Las funcionalidades principales del catálogo de recetas y el formulario de contacto están operativas.
-
-El frontend y el backend están publicados en Render y conectados a la base de datos PostgreSQL de Supabase.
-
-Proyecto desarrollado con fines educativos como parte de nuestra formación en desarrollo web Full Stack.
+- Consultas SQL parametrizadas.
+- Validaciones mediante Pydantic.
+- Gestión de estados y efectos en React.
+- Configuración de CORS y variables de entorno.
+- Trabajo colaborativo mediante Git y GitHub.
+- Despliegue de aplicaciones web en producción.
 
 ---
 
-**Entre Sabores — Dos culturas, infinitos sabores.**
+Proyecto académico · 2026
 
-© 2026 Entre Sabores · Proyecto educativo.
+**Entre Sabores — Dos culturas, infinitos sabores.**
