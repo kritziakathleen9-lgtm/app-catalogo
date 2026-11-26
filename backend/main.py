@@ -2,7 +2,7 @@ import os
 import psycopg
 from psycopg.rows import dict_row
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from pathlib import Path
@@ -25,12 +25,12 @@ app.add_middleware(
 
 
 class Receta(BaseModel):
-    nombre: str
-    pais: str
-    categoria: str
-    ingredientes: str
-    preparacion: str
-    tiempo_minutos: int
+    nombre: str = Field(min_length=1)
+    pais: str = Field(min_length=1)
+    categoria: str = Field(min_length=1)
+    ingredientes: str = Field(min_length=1)
+    preparacion: str = Field(min_length=1)
+    tiempo_minutos: int = Field(gt=0)
     imagen_url: str | None = None
 
 
@@ -152,7 +152,7 @@ def editar_receta(id: int, receta: Receta):
 
     return {"mensaje": "Receta actualizada correctamente"}
 
-@app.delete("/recetas/{id}")
+@app.delete("/recetas/{id}", status_code=204)
 def eliminar_receta(id: int):
     with conectar_db() as conexion:
         with conexion.cursor() as cursor:
@@ -168,7 +168,7 @@ def eliminar_receta(id: int):
             detail="Receta no encontrada"
         )
 
-    return {"mensaje": "Receta eliminada correctamente"}
+    return Response(status_code=204)
 
 
 

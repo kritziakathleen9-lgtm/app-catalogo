@@ -67,7 +67,7 @@ export async function eliminarReceta(id) {
     throw new Error("No se pudo eliminar la receta");
   }
 
-  return r.json();
+  return true;
 }
 
 export async function enviarContacto(datos) {
